@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <title>Hồ sơ cá nhân - ToDo Pro</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="app-container">
+        <nav class="sidebar">
+            <h2>🎯 ToDo Pro</h2>
+            <ul>
+                <li><a href="dashboard.html">🏠 Trang chủ</a></li>
+                <li><a href="projects.html">📂 Dự án</a></li>
+                <li><a href="tasks.html">✅ Nhiệm vụ</a></li>
+                <li><a href="profile.html" class="active" style="color:white; font-weight:bold;">👤 Hồ sơ</a></li>
+            </ul>
+            <button class="btn-logout" onclick="auth.logout()">Đăng xuất</button>
+        </nav>
+
+        <main class="main-content">
+            <header>
+                <h2>Thông tin hồ sơ</h2>
+            </header>
+
+            <section class="profile-card" style="background: white; padding: 30px; border-radius: 8px; border: 1px solid #ddd; max-width: 500px; margin: 0 auto; text-align: center;">
+                <div class="avatar-group" style="margin-bottom: 20px;">
+                    <img id="user-avatar" src="https://via.placeholder.com/150" alt="Avatar" style="width: 120px; height: 120px; border-radius: 50%; object-fit: cover; border: 3px solid #3498db;">
+                    <br>
+                    <label class="file-upload" style="display: inline-block; margin-top: 10px; font-size: 0.8rem;">
+                        🔄 Đổi ảnh đại diện
+                        <input type="file" id="change-avatar" accept="image/*" style="display:none;">
+                    </label>
+                </div>
+
+                <h1 id="prof-username" style="margin-bottom: 5px; color: #2c3e50;">User Name</h1>
+                <p style="color: #7f8c8d; margin-bottom: 20px;">Sinh viên Công nghệ thông tin</p>
+
+                <hr style="border: 0; border-top: 1px solid #eee; margin: 20px 0;">
+
+                <div class="stats" style="display: flex; justify-content: space-around;">
+                    <div class="stat-item">
+                        <h2 id="count-total" style="color: #3498db;">0</h2>
+                        <p style="font-size: 0.9rem;">Nhiệm vụ</p>
+                    </div>
+                    <div class="stat-item">
+                        <h2 id="count-done" style="color: #2ecc71;">0</h2>
+                        <p style="font-size: 0.9rem;">Hoàn thành</p>
+                    </div>
+                </div>
+
+                <button onclick="auth.logout()" style="margin-top: 30px; background: #e74c3c; width: 100%;">Đăng xuất khỏi thiết bị</button>
+            </section>
+        </main>
+    </div>
+
+    <script src="main.js"></script>
+    <script>
+        // Logic hiển thị thông tin hồ sơ
+        function loadProfile() {
+            auth.check(); // Kiểm tra đăng nhập
+            const user = localStorage.getItem('todo_user');
+            document.getElementById('prof-username').innerText = user;
+
+            // Lấy dữ liệu nhiệm vụ để thống kê
+            const tasks = JSON.parse(localStorage.getItem(`tasks_${user}`)) || [];
+            const doneTasks = tasks.filter(t => t.status === 'done');
+
+            document.getElementById('count-total').innerText = tasks.length;
+            document.getElementById('count-done').innerText = doneTasks.length;
+
+            // Load ảnh đại diện nếu có
+            const savedAvatar = localStorage.getItem(`avatar_${user}`);
+            if (savedAvatar) {
+                document.getElementById('user-avatar').src = savedAvatar;
+            }
+        }
+
+        // Xử lý đổi ảnh đại diện
+        document.getElementById('change-avatar').addEventListener('change', function(e) {
+            const file = e.target.files[0];
+            const user = localStorage.getItem('todo_user');
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = function(event) {
+                    const base64 = event.target.result;
+                    localStorage.setItem(`avatar_${user}`, base64);
+                    document.getElementById('user-avatar').src = base64;
+                };
+                reader.readAsDataURL(file);
+            }
+        });
+
+        window.onload = loadProfile;
+    </script>
+</body>
+</html>

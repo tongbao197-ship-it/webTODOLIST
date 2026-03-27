@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <title>Quản lý Dự án - ToDo Pro</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="app-container">
+        <nav class="sidebar">
+            <h2>🎯 ToDo Pro</h2>
+            <ul>
+                <li><a href="dashboard.html">🏠 Trang chủ</a></li>
+                <li><a href="projects.html" class="active" style="color:white; font-weight:bold;">📂 Dự án</a></li>
+                <li><a href="tasks.html">✅ Nhiệm vụ</a></li>
+                <li><a href="profile.html">👤 Hồ sơ</a></li>
+            </ul>
+            <button class="btn-logout" onclick="auth.logout()">Đăng xuất</button>
+        </nav>
+
+        <main class="main-content">
+            <header>
+                <h2>Danh mục dự án</h2>
+                <div id="user-info">Người dùng: <b id="display-user">...</b></div>
+            </header>
+
+            <section class="action-bar">
+                <input type="text" id="projInput" placeholder="Tên dự án mới (ví dụ: Lập trình C)...">
+                <button onclick="projectManager.add()">Tạo dự án</button>
+            </section>
+
+            <div id="project-list" class="grid-container">
+                </div>
+        </main>
+    </div>
+
+    <script src="main.js"></script>
+    <script>
+        const projectManager = {
+            add: function() {
+                const name = document.getElementById('projInput').value.trim();
+                const user = localStorage.getItem('todo_user');
+                if (!name) return alert("Vui lòng nhập tên dự án!");
+
+                let projects = JSON.parse(localStorage.getItem(`projects_${user}`)) || [];
+                projects.push({ id: Date.now(), name: name });
+                localStorage.setItem(`projects_${user}`, JSON.stringify(projects));
+                
+                document.getElementById('projInput').value = "";
+                this.render();
+            },
+
+            render: function() {
+                const user = localStorage.getItem('todo_user');
+                document.getElementById('display-user').innerText = user;
+                const projects = JSON.parse(localStorage.getItem(`projects_${user}`)) || [];
+                const container = document.getElementById('project-list');
+
+                container.innerHTML = projects.map(p => `
+                    <div class="card" style="border-left: 5px solid #3498db;">
+                        <h3>${p.name}</h3>
+                        <p style="font-size: 0.8rem; color: #7f8c8d; margin: 10px 0;">ID: ${p.id}</p>
+                        <button onclick="projectManager.delete(${p.id})" style="background:#bdc3c7; color:#333; font-size:0.7rem;">Xóa dự án</button>
+                    </div>
+                `).join('');
+            },
+
+            delete: function(id) {
+                if(!confirm("Xóa dự án sẽ không xóa nhiệm vụ, bạn chắc chứ?")) return;
+                const user = localStorage.getItem('todo_user');
+                let projects = JSON.parse(localStorage.getItem(`projects_${user}`));
+                projects = projects.filter(p => p.id !== id);
+                localStorage.setItem(`projects_${user}`, JSON.stringify(projects));
+                this.render();
+            }
+        };
+
+        window.onload = () => { auth.check(); projectManager.render(); };
+    </script>
+</body>
+</html>

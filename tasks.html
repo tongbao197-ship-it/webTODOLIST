@@ -1,0 +1,155 @@
+<!DOCTYPE html>
+<html lang="vi">
+
+<head>
+    <meta charset="UTF-8">
+    <title>Nhiệm vụ chính - ToDo Pro</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+
+<body>
+    <div class="app-container">
+        <nav class="sidebar">
+            <h2>🎯 ToDo Pro</h2>
+            <ul>
+                <li><a href="dashboard.html">🏠 Trang chủ</a></li>
+                <li><a href="projects.html">📂 Dự án</a></li>
+                <li><a href="tasks.html" class="active" style="color:white; font-weight:bold;">✅ Nhiệm vụ</a></li>
+                <li><a href="profile.html">👤 Hồ sơ</a></li>
+            </ul>
+            <button class="btn-logout" onclick="auth.logout()">Đăng xuất</button>
+        </nav>
+
+        <main class="main-content">
+            <header>
+                <h2>Danh sách nhiệm vụ chính</h2>
+                <div id="user-info">Đang dùng: <b id="display-user">...</b></div>
+            </header>
+
+            <section class="action-bar" style="display: flex; gap: 10px; align-items: center; background: white; padding: 15px; border-radius: 8px; border: 1px solid #ddd;">
+                <input type="text" id="taskInput" placeholder="Việc cần làm..." style="flex: 2; padding: 8px;">
+
+                <select id="selectProject" style="flex: 1; padding: 8px; border-radius: 4px; border: 1px solid #ccc; cursor: pointer;">
+                    <option value="none">-- Chọn dự án --</option>
+                </select>
+
+                <label class="file-upload" style="background: #f1f5f9; padding: 8px 12px; border-radius: 4px; cursor: pointer; border: 1px solid #cbd5e1; font-size: 0.9rem;">
+                    🖼️ Ảnh
+                    <input type="file" id="imageInput" accept="image/*" style="display: none;">
+                </label>
+
+                <button onclick="taskManager.add()" style="background: #2563eb; color: white; padding: 8px 20px; border-radius: 4px; font-weight: bold;">Thêm</button>
+            </section>
+
+            <div class="filter-tabs" style="margin: 20px 0; display: flex; gap: 10px;">
+                <button onclick="taskManager.render('all')">Tất cả</button>
+                <button onclick="taskManager.render('pending')" style="background:#f39c12; color:white;">Chưa xong</button>
+                <button onclick="taskManager.render('done')" style="background:#2ecc71; color:white;">Đã xong</button>
+            </div>
+
+            <div id="task-list" class="grid-container">
+                </div>
+        </main>
+    </div>
+
+    <script src="main.js"></script>
+    <script>
+        // 1. Hàm load danh sách dự án vào ô Select
+        function refreshProjectDropdown() {
+            const user = localStorage.getItem('todo_user');
+            const projects = JSON.parse(localStorage.getItem(`projects_${user}`)) || [];
+            const select = document.getElementById('selectProject');
+            
+            let options = '<option value="none">-- Không thuộc dự án --</option>';
+            projects.forEach(p => {
+                options += `<option value="${p.name}">${p.name}</option>`;
+            });
+            select.innerHTML = options;
+        }
+
+        // 2. Quản lý nhiệm vụ
+        const taskManager = {
+            add: function () {
+                const title = document.getElementById('taskInput').value.trim();
+                const projectName = document.getElementById('selectProject').value; // Sửa lỗi lấy ID
+                const file = document.getElementById('imageInput').files[0];
+                const user = localStorage.getItem('todo_user');
+
+                if (!title) return alert("Bạn chưa nhập tên nhiệm vụ!");
+
+                const save = (imgData = null) => {
+                    const key = `tasks_${user}`;
+                    let tasks = JSON.parse(localStorage.getItem(key)) || [];
+                    tasks.push({
+                        id: Date.now(),
+                        title: title,
+                        project: projectName, // Lưu tên dự án
+                        image: imgData,
+                        status: 'pending'
+                    });
+                    localStorage.setItem(key, JSON.stringify(tasks));
+                    
+                    // Reset form
+                    document.getElementById('taskInput').value = "";
+                    document.getElementById('imageInput').value = "";
+                    this.render();
+                };
+
+                if (file) {
+                    const reader = new FileReader();
+                    reader.onload = (e) => save(e.target.result);
+                    reader.readAsDataURL(file);
+                } else {
+                    save();
+                }
+            },
+
+            render: function (filter = 'all') {
+                const user = localStorage.getItem('todo_user');
+                document.getElementById('display-user').innerText = user;
+                let tasks = JSON.parse(localStorage.getItem(`tasks_${user}`)) || [];
+
+                if (filter !== 'all') tasks = tasks.filter(t => t.status === filter);
+
+                const container = document.getElementById('task-list');
+                container.innerHTML = tasks.map(t => `
+                    <div class="card" style="border-top: 4px solid ${t.status === 'done' ? '#2ecc71' : '#3498db'}">
+                        ${t.image ? `<img src="${t.image}" alt="task">` : '<div style="height:120px; background:#eee; display:flex; align-items:center; justify-content:center; color:#999;">Không có ảnh</div>'}
+                        <h3>${t.title}</h3>
+                        <p style="color: #3498db; font-size: 0.8rem; margin: 5px 0;">📂 Dự án: ${t.project !== 'none' ? t.project : 'Cá nhân'}</p>
+                        <p>Trạng thái: ${t.status === 'done' ? '✅ Xong' : '⏳ Chờ'}</p>
+                        <div style="margin-top:10px; display:flex; gap:5px; justify-content:center;">
+                            <button onclick="taskManager.toggle(${t.id})" style="background:#2ecc71">${t.status === 'done' ? 'Làm lại' : 'Làm xong'}</button>
+                            <button onclick="taskManager.delete(${t.id})" style="background:#95a5a6">Xóa</button>
+                        </div>
+                    </div>
+                `).join('');
+            },
+
+            toggle: function (id) {
+                const user = localStorage.getItem('todo_user');
+                let tasks = JSON.parse(localStorage.getItem(`tasks_${user}`));
+                tasks = tasks.map(t => t.id === id ? { ...t, status: t.status === 'done' ? 'pending' : 'done' } : t);
+                localStorage.setItem(`tasks_${user}`, JSON.stringify(tasks));
+                this.render();
+            },
+
+            delete: function (id) {
+                if (!confirm("Xóa nhiệm vụ này?")) return;
+                const user = localStorage.getItem('todo_user');
+                let tasks = JSON.parse(localStorage.getItem(`tasks_${user}`));
+                tasks = tasks.filter(t => t.id !== id);
+                localStorage.setItem(`tasks_${user}`, JSON.stringify(tasks));
+                this.render();
+            }
+        };
+
+        // Chạy khi load trang
+        window.onload = () => {
+            auth.check();
+            refreshProjectDropdown();
+            taskManager.render();
+        };
+    </script>
+</body>
+</html>

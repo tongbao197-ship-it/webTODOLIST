@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <title>Hệ thống ToDo - Xác thực</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body class="auth-body">
+    <div class="auth-card">
+        <h1 id="auth-title">Đăng Nhập</h1>
+        <div class="form-group">
+            <input type="text" id="username" placeholder="Tên đăng nhập">
+            <input type="password" id="password" placeholder="Mật khẩu">
+            
+            <button id="main-btn" onclick="account.handle()">Vào hệ thống</button>
+            
+            <p style="margin-top: 15px; font-size: 0.8rem;">
+                <span id="toggle-text">Chưa có tài khoản?</span> 
+                <a href="#" onclick="account.toggle()" id="toggle-link" style="color: #3498db; text-decoration:none;">Đăng ký ngay</a>
+            </p>
+
+            <p id="forgot-area" style="margin-top: 10px; font-size: 0.8rem;">
+                <a href="#" onclick="account.forgot()" style="color: #95a5a6; text-decoration:none;">Quên mật khẩu?</a>
+            </p>
+            
+            <div id="auth-msg" style="margin-top: 15px; font-weight: bold; font-size: 0.9rem; color: #e67e22;"></div>
+        </div>
+    </div>
+
+    <script>
+        const account = {
+            isLoginMode: true,
+
+            // Chuyển đổi Đăng nhập <-> Đăng ký
+            toggle: function() {
+                this.isLoginMode = !this.isLoginMode;
+                document.getElementById('auth-title').innerText = this.isLoginMode ? "Đăng Nhập" : "Đăng Ký";
+                document.getElementById('main-btn').innerText = this.isLoginMode ? "Vào hệ thống" : "Tạo tài khoản";
+                document.getElementById('toggle-text').innerText = this.isLoginMode ? "Chưa có tài khoản?" : "Đã có tài khoản?";
+                document.getElementById('toggle-link').innerText = this.isLoginMode ? "Đăng ký ngay" : "Đăng nhập";
+                document.getElementById('forgot-area').style.display = this.isLoginMode ? "block" : "none";
+                document.getElementById('auth-msg').innerText = "";
+            },
+
+            // Xử lý Đăng nhập / Đăng ký
+            handle: function() {
+                const user = document.getElementById('username').value.trim();
+                const pass = document.getElementById('password').value.trim();
+                const msg = document.getElementById('auth-msg');
+
+                if (!user || !pass) return alert("Vui lòng điền đủ tin!");
+
+                let users = JSON.parse(localStorage.getItem('sys_users')) || [];
+
+                if (this.isLoginMode) {
+                    const found = users.find(u => u.username === user && u.password === pass);
+                    if (found) {
+                        localStorage.setItem('todo_user', user);
+                        window.location.href = 'dashboard.html';
+                    } else {
+                        msg.style.color = "red";
+                        msg.innerText = "Sai tài khoản hoặc mật khẩu!";
+                    }
+                } else {
+                    if (users.find(u => u.username === user)) {
+                        alert("Tên này đã có người dùng!");
+                    } else {
+                        users.push({ username: user, password: pass });
+                        localStorage.setItem('sys_users', JSON.stringify(users));
+                        alert("Đăng ký xong! Mời đăng nhập.");
+                        this.toggle();
+                    }
+                }
+            },
+
+            // Mẹo "Quên mật khẩu" (Tìm lại mật khẩu cũ)
+            forgot: function() {
+                const user = document.getElementById('username').value.trim();
+                const msg = document.getElementById('auth-msg');
+
+                if (!user) {
+                    alert("Hãy nhập Tên đăng nhập để tìm lại mật khẩu!");
+                    return;
+                }
+
+                let users = JSON.parse(localStorage.getItem('sys_users')) || [];
+                const found = users.find(u => u.username === user);
+
+                if (found) {
+                    msg.style.color = "#27ae60";
+                    msg.innerText = `Mật khẩu của bạn là: ${found.password}`;
+                } else {
+                    msg.style.color = "red";
+                    msg.innerText = "Không tìm thấy tên người dùng này!";
+                }
+            }
+        };
+    </script>
+</body>
+</html>

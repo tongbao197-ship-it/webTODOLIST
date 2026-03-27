@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <title>Hệ thống ToDo</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="app-container">
+        <nav class="sidebar">
+            <div class="logo">🚀 IT Student</div>
+            <ul>
+                <li><a href="dashboard.html" id="nav-home">🏠 Trang chủ</a></li>
+                <li><a href="projects.html" id="nav-projects">📂 Dự án</a></li>
+                <li><a href="tasks.html" id="nav-tasks">✅ Nhiệm vụ</a></li>
+                <li><a href="profile.html" id="nav-profile">👤 Hồ sơ</a></li>
+            </ul>
+            <button class="btn-logout" onclick="auth.logout()">Đăng xuất</button>
+        </nav>
+
+        <main class="main-content">
+            <header>
+                <h2 id="page-title">Quản lý Nhiệm vụ</h2>
+                <span id="user-welcome">Chào, ...</span>
+            </header>
+
+            <section class="action-bar">
+                <input type="text" id="taskName" placeholder="Việc cần làm...">
+                <label class="file-upload">
+                    🖼️ Thêm ảnh
+                    <input type="file" id="taskImg" accept="image/*">
+                </label>
+                <button onclick="todo.add()">Thêm mới</button>
+            </section>
+
+            <div id="data-display" class="grid-container">
+                </div>
+        </main>
+    </div>
+    <script src="main.js"></script>
+    <script>
+        // Tự động load dữ liệu khi vào trang
+        window.onload = () => {
+            auth.check();
+            todo.render();
+        };
+    </script>
+</body>
+</html>
