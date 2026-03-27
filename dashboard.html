@@ -2,47 +2,121 @@
 <html lang="vi">
 <head>
     <meta charset="UTF-8">
-    <title>Hệ thống ToDo</title>
+    <title>Bảng điều khiển - IT Student</title>
     <link rel="stylesheet" href="style.css">
+    <style>
+        /* CSS bổ sung riêng cho Dashboard để tăng tính thẩm mỹ */
+        .welcome-section {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 70vh;
+            text-align: center;
+            background: white;
+            border-radius: 15px;
+            margin-top: 20px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.05);
+        }
+
+        .welcome-section h1 {
+            font-size: 2.5rem;
+            color: #2c3e50;
+            margin-bottom: 15px;
+        }
+
+        .fun-gif {
+            width: 100%;
+            max-width: 450px;
+            border-radius: 12px;
+            margin: 20px 0;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+        }
+
+        .quote-box {
+            font-style: italic;
+            color: #7f8c8d;
+            margin-top: 10px;
+            font-size: 1.1rem;
+        }
+
+        .quick-action {
+            margin-top: 30px;
+        }
+
+        .btn-start {
+            background: #2ecc71;
+            padding: 12px 30px;
+            font-size: 1rem;
+            font-weight: bold;
+            transition: transform 0.2s;
+        }
+
+        .btn-start:hover {
+            transform: scale(1.05);
+            background: #27ae60;
+        }
+    </style>
 </head>
 <body>
     <div class="app-container">
         <nav class="sidebar">
-            <div class="logo">🚀 IT Student</div>
+            <div class="logo" style="font-size: 1.5rem; font-weight: bold; margin-bottom: 30px;">🚀 IT Student</div>
             <ul>
-                <li><a href="dashboard.html" id="nav-home">🏠 Trang chủ</a></li>
-                <li><a href="projects.html" id="nav-projects">📂 Dự án</a></li>
-                <li><a href="tasks.html" id="nav-tasks">✅ Nhiệm vụ</a></li>
-                <li><a href="profile.html" id="nav-profile">👤 Hồ sơ</a></li>
+                <li><a href="dashboard.html" class="active" style="color:white; font-weight:bold;">🏠 Trang chủ</a></li>
+                <li><a href="projects.html">📂 Dự án</a></li>
+                <li><a href="tasks.html">✅ Nhiệm vụ</a></li>
+                <li><a href="profile.html">👤 Hồ sơ</a></li>
             </ul>
             <button class="btn-logout" onclick="auth.logout()">Đăng xuất</button>
         </nav>
 
         <main class="main-content">
             <header>
-                <h2 id="page-title">Quản lý Nhiệm vụ</h2>
-                <span id="user-welcome">Chào, ...</span>
+                <h2 id="page-title">Hệ thống quản lý</h2>
+                <span id="user-welcome" style="font-weight: bold; color: #3498db;">Đang tải...</span>
             </header>
 
-            <section class="action-bar">
-                <input type="text" id="taskName" placeholder="Việc cần làm...">
-                <label class="file-upload">
-                    🖼️ Thêm ảnh
-                    <input type="file" id="taskImg" accept="image/*">
-                </label>
-                <button onclick="todo.add()">Thêm mới</button>
-            </section>
+            <section class="welcome-section">
+                <h1>Hôm nay chúng ta làm gì?</h1>
+                
+                <img src="https://media.giphy.com/media/v1.Y2lkPTc5MGI3NjExNHJueGZ3bmZqZzR3eXNueXp3eHpxeHpxeHpxeHpxeHpxeHpxeHpxJmVwPXYxX2ludGVybmFsX2dpZl9ieV9pZCZjdD1n/3o7abKhOpu0NwenH3O/giphy.gif" 
+                     alt="Coding Fun" 
+                     class="fun-gif">
 
-            <div id="data-display" class="grid-container">
+                <p class="quote-box" id="random-quote">"Code không lỗi đời không nể."</p>
+
+                <div class="quick-action">
+                    <button class="btn-start" onclick="window.location.href='tasks.html'">
+                        Bắt đầu xử lý nhiệm vụ ✍️
+                    </button>
                 </div>
+            </section>
         </main>
     </div>
+
     <script src="main.js"></script>
     <script>
-        // Tự động load dữ liệu khi vào trang
         window.onload = () => {
+            // 1. Kiểm tra đăng nhập
             auth.check();
-            todo.render();
+
+            // 2. Lấy tên user từ localStorage
+            const user = localStorage.getItem('todo_user');
+            if (user) {
+                document.getElementById('user-welcome').innerText = `Chào mừng quay trở lại, ${user}!`;
+            }
+
+            // 3. Hiển thị ngẫu nhiên một câu nói vui (Tùy chọn thêm)
+            const quotes = [
+                "Hôm nay là một ngày đẹp trời để debug!",
+                "Deadline là nguồn cảm hứng lớn nhất của sinh viên IT.",
+                "Đừng lo nếu nó không chạy, nếu mọi thứ đều chạy, bạn sẽ thất nghiệp.",
+                "Hãy làm việc như một con robot, nhưng hãy sống như một con người.",
+                "Bạn không làm việc hôm nay có thể hôm sau bãi rác sẽ là nhà của bạn"
+            ];
+            const randomIdx = Math.floor(Math.random() * quotes.length);
+            document.getElementById('random-quote').innerText = `"${quotes[randomIdx]}"`;
         };
     </script>
 </body>
