@@ -4,11 +4,33 @@
     <meta charset="UTF-8">
     <title>Hồ sơ cá nhân - ToDo Pro</title>
     <link rel="stylesheet" href="style.css">
+    <style>
+        /* Tối ưu hiển thị để tránh bị giật (layout shift) khi load */
+        .profile-card {
+            background: white;
+            padding: 30px;
+            border-radius: 12px;
+            border: 1px solid #eee;
+            max-width: 450px;
+            margin: 20px auto;
+            text-align: center;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+        }
+        #user-avatar {
+            width: 120px;
+            height: 120px;
+            border-radius: 50%;
+            object-fit: cover;
+            border: 3px solid #3498db;
+            background: #f8f9fa; /* Màu nền chờ khi ảnh chưa load xong */
+        }
+        .loading-skeleton { color: #bdc3c7; font-size: 0.8rem; }
+    </style>
 </head>
 <body>
     <div class="app-container">
         <nav class="sidebar">
-            <h2>🎯 ToDo Pro</h2>
+            <div class="logo">🚀 IT Student</div>
             <ul>
                 <li><a href="dashboard.html">🏠 Trang chủ</a></li>
                 <li><a href="projects.html">📂 Dự án</a></li>
@@ -20,78 +42,93 @@
 
         <main class="main-content">
             <header>
-                <h2>Thông tin hồ sơ</h2>
+                <h2>Thông tin cá nhân</h2>
             </header>
 
-            <section class="profile-card" style="background: white; padding: 30px; border-radius: 8px; border: 1px solid #ddd; max-width: 500px; margin: 0 auto; text-align: center;">
-                <div class="avatar-group" style="margin-bottom: 20px;">
-                    <img id="user-avatar" src="https://via.placeholder.com/150" alt="Avatar" style="width: 120px; height: 120px; border-radius: 50%; object-fit: cover; border: 3px solid #3498db;">
+            <section class="profile-card">
+                <div class="avatar-group">
+                    <img id="user-avatar" src="https://via.placeholder.com/150" alt="Avatar">
                     <br>
-                    <label class="file-upload" style="display: inline-block; margin-top: 10px; font-size: 0.8rem;">
-                        🔄 Đổi ảnh đại diện
+                    <label class="file-upload" style="display: inline-block; margin-top: 10px; cursor: pointer; color: #3498db;">
+                        <strong>🔄 Đổi ảnh đại diện</strong>
                         <input type="file" id="change-avatar" accept="image/*" style="display:none;">
                     </label>
                 </div>
 
-                <h1 id="prof-username" style="margin-bottom: 5px; color: #2c3e50;">User Name</h1>
+                <h1 id="prof-username" style="margin: 15px 0 5px; color: #2c3e50;">---</h1>
                 <p style="color: #7f8c8d; margin-bottom: 20px;">Sinh viên Công nghệ thông tin</p>
 
-                <hr style="border: 0; border-top: 1px solid #eee; margin: 20px 0;">
-
-                <div class="stats" style="display: flex; justify-content: space-around;">
+                <div class="stats" style="display: flex; justify-content: space-around; background: #fcfcfc; padding: 15px; border-radius: 8px;">
                     <div class="stat-item">
-                        <h2 id="count-total" style="color: #3498db;">0</h2>
-                        <p style="font-size: 0.9rem;">Nhiệm vụ</p>
+                        <h2 id="count-total">0</h2>
+                        <p>Nhiệm vụ</p>
                     </div>
                     <div class="stat-item">
                         <h2 id="count-done" style="color: #2ecc71;">0</h2>
-                        <p style="font-size: 0.9rem;">Hoàn thành</p>
+                        <p>Hoàn thành</p>
                     </div>
                 </div>
 
-                <button onclick="auth.logout()" style="margin-top: 30px; background: #e74c3c; width: 100%;">Đăng xuất khỏi thiết bị</button>
+                <button onclick="auth.logout()" style="margin-top: 30px; background: #e74c3c; width: 100%;">Đăng xuất</button>
             </section>
         </main>
     </div>
 
     <script src="main.js"></script>
     <script>
-        // Logic hiển thị thông tin hồ sơ
-        function loadProfile() {
-            auth.check(); // Kiểm tra đăng nhập
+        // Hàm load dữ liệu cực nhanh
+        function initProfile() {
+            auth.check();
             const user = localStorage.getItem('todo_user');
+            if (!user) return;
+
+            // 1. Hiển thị tên ngay lập tức
             document.getElementById('prof-username').innerText = user;
 
-            // Lấy dữ liệu nhiệm vụ để thống kê
-            const tasks = JSON.parse(localStorage.getItem(`tasks_${user}`)) || [];
-            const doneTasks = tasks.filter(t => t.status === 'done');
+            // 2. Load ảnh từ cache LocalStorage (Dùng requestAnimationFrame để mượt hơn)
+            requestAnimationFrame(() => {
+                const savedAvatar = localStorage.getItem(`avatar_${user}`);
+                if (savedAvatar) {
+                    document.getElementById('user-avatar').src = savedAvatar;
+                }
+                
+                // 3. Tính toán thống kê (Chỉ lấy từ key 'tasks_user' theo logic main.js)
+                const tasks = JSON.parse(localStorage.getItem(`tasks_${user}`)) || [];
+                const doneCount = tasks.filter(t => t.status === 'done').length;
 
-            document.getElementById('count-total').innerText = tasks.length;
-            document.getElementById('count-done').innerText = doneTasks.length;
-
-            // Load ảnh đại diện nếu có
-            const savedAvatar = localStorage.getItem(`avatar_${user}`);
-            if (savedAvatar) {
-                document.getElementById('user-avatar').src = savedAvatar;
-            }
+                document.getElementById('count-total').innerText = tasks.length;
+                document.getElementById('count-done').innerText = doneCount;
+            });
         }
 
-        // Xử lý đổi ảnh đại diện
+        // Xử lý đổi ảnh nhanh với nén nhẹ (giảm tải LocalStorage)
         document.getElementById('change-avatar').addEventListener('change', function(e) {
             const file = e.target.files[0];
             const user = localStorage.getItem('todo_user');
+            
             if (file) {
+                // Kiểm tra kích thước file (Tránh làm chậm trình duyệt)
+                if (file.size > 2 * 1024 * 1024) {
+                    alert("Ảnh quá lớn! Vui lòng chọn ảnh dưới 2MB.");
+                    return;
+                }
+
                 const reader = new FileReader();
-                reader.onload = function(event) {
+                reader.onload = (event) => {
                     const base64 = event.target.result;
-                    localStorage.setItem(`avatar_${user}`, base64);
-                    document.getElementById('user-avatar').src = base64;
+                    try {
+                        localStorage.setItem(`avatar_${user}`, base64);
+                        document.getElementById('user-avatar').src = base64;
+                    } catch (e) {
+                        alert("Bộ nhớ đầy, không thể lưu ảnh quá lớn!");
+                    }
                 };
                 reader.readAsDataURL(file);
             }
         });
 
-        window.onload = loadProfile;
+        // Chạy ngay khi DOM sẵn sàng, không đợi toàn bộ tài nguyên
+        document.addEventListener('DOMContentLoaded', initProfile);
     </script>
 </body>
 </html>
